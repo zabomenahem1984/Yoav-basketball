@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>לוז אימונים הפועל יואב צפית</title>
+
+<!-- PWA / Add to Home Screen -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1C2434">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="יואב כדורסל">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;900&family=Rubik:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F5F1E5; --paper-2:#EFE8D6; --ink:#1C2434; --ink-soft:#4B5566;
+    --wood:#C08A4E; --wood-dark:#8C5F30; --line:rgba(28,36,52,.14);
+    --accent:#C4432F; --teal:#2F6F62; --purple:#6B4FA0;
+    --c-dodu:#BD5B37; --c-or:#357367; --c-eitan:#42568F;
+    --c-omer:#A9832A; --c-ofri:#5C6B47; --c-ziv:#3E5C76; --c-none:#867E70;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--paper); color:var(--ink); font-family:'Rubik',system-ui,sans-serif; padding:20px 16px 50px; min-height:100vh;}
+  .wrap{max-width:1180px; margin:0 auto;}
+  header.top{display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px; border-bottom:3px solid var(--ink); padding-bottom:16px; margin-bottom:20px;}
+  .title-block{display:flex; align-items:center; gap:14px;}
+  .logo-wrap{width:56px; height:56px; border-radius:14px; background:#D2232A; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(28,36,52,.25); overflow:hidden; flex:none;}
+  .logo-wrap img{width:100%; height:100%; object-fit:contain;}
+  .eyebrow{font-family:'Heebo',sans-serif; font-weight:700; font-size:11px; letter-spacing:.14em; color:var(--wood-dark); text-transform:uppercase; margin:0 0 4px;}
+  h1{font-family:'Heebo',sans-serif; font-weight:900; font-size:clamp(22px,4.5vw,36px); margin:0; line-height:1.05;}
+  h1 span{color:var(--wood-dark);}
+  .hall-tabs{display:flex; gap:6px; background:var(--paper-2); padding:5px; border-radius:999px; border:1px solid var(--line);}
+  .hall-tab{font-family:'Heebo',sans-serif; font-weight:700; font-size:13px; padding:8px 16px; border-radius:999px; border:none; background:transparent; color:var(--ink-soft); cursor:pointer;}
+  .hall-tab.active{background:var(--ink); color:var(--paper);}
+  .legend{display:flex; flex-wrap:wrap; gap:7px; align-items:center; margin-bottom:12px;}
+  .legend-label{font-size:12px; color:var(--ink-soft); font-weight:600;}
+  .chip{display:flex; align-items:center; gap:5px; font-size:12px; font-weight:600; padding:5px 10px; border-radius:999px; border:1.5px solid var(--line); background:#fff; cursor:pointer;}
+  .chip.dim{opacity:.35;}
+  .dot{width:8px; height:8px; border-radius:50%;}
+  .week-nav{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; background:var(--ink); color:var(--paper); border-radius:12px; padding:9px 14px; flex-wrap:wrap;}
+  .nav-btn{font-family:'Heebo',sans-serif; font-size:18px; font-weight:700; background:rgba(255,255,255,.1); color:var(--paper); border:none; border-radius:8px; width:32px; height:32px; cursor:pointer;}
+  .week-label{display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-family:'Heebo',sans-serif; font-weight:700; font-size:13px;}
+  .today-btn{font-size:11px; font-weight:600; background:var(--wood); color:var(--ink); border:none; border-radius:999px; padding:4px 12px; cursor:pointer;}
+  .board{background:#fff; border:1px solid var(--line); border-radius:16px; padding:12px; overflow-x:auto;}
+  .grid{display:grid; grid-template-columns:52px repeat(7,minmax(112px,1fr)); min-width:880px;}
+  .day-head{font-family:'Heebo',sans-serif; font-weight:700; font-size:13px; text-align:center; padding:8px 3px 10px; border-bottom:2px solid var(--ink); background:#fff;}
+  .today-badge{display:inline-block; font-size:9px; font-weight:700; background:var(--accent); color:#fff; border-radius:5px; padding:1px 6px; margin-bottom:2px;}
+  .date-span{display:block; font-size:10.5px; margin-top:1px;}
+  .sub-span{display:block; font-weight:500; font-size:10.5px; color:var(--ink-soft); margin-top:2px;}
+  .vac-badge{display:block; font-size:9.5px; font-weight:600; color:var(--teal); margin-top:2px;}
+  .event-chip{display:block; font-size:9.5px; font-weight:700; color:var(--purple); margin-top:2px;}
+  .hour-col{display:grid; grid-template-rows:repeat(32,20px); border-inline-end:1px dashed var(--line);}
+  .hour-label{font-size:9.5px; color:var(--ink-soft); text-align:center; transform:translateY(-6px);}
+  .day-col{position:relative; display:grid; grid-template-rows:repeat(32,20px); border-inline-end:1px solid var(--line);}
+  .day-col:last-child{border-inline-end:none;}
+  .slot-line{border-bottom:1px solid var(--line);}
+  .session{position:absolute; inset-inline:2px; border-radius:7px; padding:4px 6px; font-size:10.5px; line-height:1.25; font-weight:600; color:#fff; overflow:hidden; box-shadow:0 1px 2px rgba(0,0,0,.15);}
+  .session.dim{opacity:.18;}
+  .session .t{display:block; font-weight:500; font-size:9px; opacity:.85;}
+  .event-block{position:absolute; inset-inline:2px; border-radius:7px; padding:4px 6px; font-size:10.5px; line-height:1.25; font-weight:600; color:var(--purple); background:#F1EBFA; border:1.5px dashed var(--purple); overflow:hidden;}
+  .empty-day{display:flex; align-items:center; justify-content:center; height:100%; color:var(--ink-soft); font-size:10.5px; padding-top:40%;}
+  .games{margin-top:18px; background:#fff; border:1px solid var(--line); border-radius:14px; padding:16px 18px;}
+  .games h3{font-family:'Heebo',sans-serif; font-size:14px; margin:0 0 12px;}
+  .game-row{display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid var(--line); font-size:13px;}
+  .game-row:last-child{border-bottom:none;}
+  .game-team{font-weight:700;}
+  .game-info{color:var(--ink-soft); font-size:12.5px;}
+  .status{text-align:center; font-size:12px; color:var(--ink-soft); padding:20px;}
+  footer.note{margin-top:18px; font-size:11px; color:var(--ink-soft); text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="title-block">
+      <div class="logo-wrap"><img src="icon-512.png" alt="לוגו הפועל יואב צפית"></div>
+      <div>
+        <p class="eyebrow">הפועל יואב צפית</p>
+        <h1>לוז <span>אימונים</span> הפועל יואב צפית</h1>
+      </div>
+    </div>
+    <div class="hall-tabs" id="hallTabs"></div>
+  </header>
+
+  <div class="legend" id="legend"><span class="legend-label">מאמנים:</span></div>
+
+  <div class="week-nav">
+    <button class="nav-btn" id="prevWeek">›</button>
+    <div class="week-label">
+      <span id="weekRange"></span>
+      <button class="today-btn" id="todayBtn">היום</button>
+    </div>
+    <button class="nav-btn" id="nextWeek">‹</button>
+  </div>
+
+  <div class="board"><div class="grid" id="grid"><div class="status">טוען נתונים מהגיליון…</div></div></div>
+
+  <div class="games">
+    <h3>השבוע לאן?</h3>
+    <div id="gamesList"><div class="status">טוען…</div></div>
+  </div>
+
+  <footer class="note">הנתונים נמשכים בכל טעינה מגיליון Google Sheets · עדכון בגיליון מתעדכן כאן בפתיחה/רענון הבא</footer>
+</div>
+
+<script>
+const CSV_TRAININGS = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZ-KLWuPMiXj5jRFLUnsb2KDBYSptugAMO2PJyBbxipAFPi_YGs0_CJWk7UfbTX620AV6Uv7N_fnF-/pub?gid=1746402232&single=true&output=csv";
+const CSV_EVENTS = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZ-KLWuPMiXj5jRFLUnsb2KDBYSptugAMO2PJyBbxipAFPi_YGs0_CJWk7UfbTX620AV6Uv7N_fnF-/pub?gid=1998600056&single=true&output=csv";
+const CSV_GAMES = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZ-KLWuPMiXj5jRFLUnsb2KDBYSptugAMO2PJyBbxipAFPi_YGs0_CJWk7UfbTX620AV6Uv7N_fnF-/pub?gid=279545133&single=true&output=csv";
+
+const DAYS = ["ראשון","שני","שלישי","רביעי","חמישי","שישי","שבת"];
+const COACH_COLOR = {
+  "דודו":"var(--c-dodu)", "אור":"var(--c-or)", "איתן":"var(--c-eitan)",
+  "עומר":"var(--c-omer)", "עופרי":"var(--c-ofri)", "זיו":"var(--c-ziv)", "none":"var(--c-none)"
+};
+const START_HOUR = 7, END_HOUR = 23, SLOT_MIN = 30;
+const SLOTS = ((END_HOUR-START_HOUR)*60)/SLOT_MIN;
+
+const VACATIONS = [
+  {name:"ראש השנה",     start:"2026-09-11", end:"2026-09-13"},
+  {name:"יום כיפור",    start:"2026-09-20", end:"2026-09-21"},
+  {name:"סוכות",        start:"2026-09-25", end:"2026-10-03"},
+  {name:"חנוכה",        start:"2026-12-05", end:"2026-12-12"},
+  {name:"פורים",        start:"2027-03-23", end:"2027-03-24"},
+  {name:"פסח",          start:"2027-04-13", end:"2027-04-28"},
+  {name:"יום העצמאות",  start:"2027-05-12", end:"2027-05-12"},
+  {name:"ל\"ג בעומר",   start:"2027-05-25", end:"2027-05-25"},
+  {name:"שבועות",       start:"2027-06-10", end:"2027-06-12"},
+];
+function toDate(iso){ const [y,m,d]=iso.split('-').map(Number); return new Date(y,m-1,d); }
+function getVacation(date){ for(const v of VACATIONS){ if(date>=toDate(v.start) && date<=toDate(v.end)) return v.name; } return null; }
+function toISODateLocal(d){ const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${day}`; }
+function getWeekStart(offset){ const now=new Date(); const day=now.getDay(); const sunday=new Date(now); sunday.setHours(0,0,0,0); sunday.setDate(now.getDate()-day+offset*7); return sunday; }
+function getWeekDates(offset){ const start=getWeekStart(offset); return Array.from({length:7},(_,i)=>{ const d=new Date(start); d.setDate(start.getDate()+i); return d; }); }
+function isSameDate(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+function fmtDateShort(d){ return d.toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit'}); }
+function fmtDateFull(d){ return d.toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'numeric'}); }
+function timeStrToHour(str){ if(!str) return null; const [hh,mm]=str.split(':').map(Number); return hh+(mm||0)/60; }
+
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  for(let i=0;i<text.length;i++){
+    const c = text[i];
+    if(inQuotes){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; } else { inQuotes = false; }
+      } else field += c;
+    }else{
+      if(c === '"') inQuotes = true;
+      else if(c === ','){ row.push(field); field=''; }
+      else if(c === '\n'){ row.push(field); rows.push(row); row=[]; field=''; }
+      else if(c === '\r'){ /* skip */ }
+      else field += c;
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  if(!rows.length) return [];
+  const headers = rows[0].map(h=>h.trim());
+  return rows.slice(1).filter(r=>r.some(c=>c && c.trim())).map(r=>{
+    const obj = {};
+    headers.forEach((h,i)=> obj[h] = (r[i]||'').trim());
+    return obj;
+  });
+}
+
+async function fetchCSV(url){
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('fetch failed: '+url);
+  const text = await res.text();
+  return parseCSV(text);
+}
+
+let schedule = {};   // hall -> day -> [{start,end,duration,coach,label}]
+let games = {};      // team -> {opponent, time}
+let events = [];      // [{date, label, allDay, start, end}]
+let activeHall = null;
+let dimmedCoach = null;
+let weekOffset = 0;
+
+function buildSchedule(rows){
+  const sched = {};
+  rows.forEach(r=>{
+    const hall = r['אולם'], day = r['יום'];
+    if(!hall || !day) return;
+    if(!sched[hall]) sched[hall] = {};
+    if(!sched[hall][day]) sched[hall][day] = [];
+    const start = timeStrToHour(r['שעת_התחלה']);
+    const end = timeStrToHour(r['שעת_סיום']);
+    if(start===null || end===null) return;
+    sched[hall][day].push({
+      start, end, duration: Math.round((end-start)*100)/100,
+      coach: r['מאמן'] || null,
+      label: r['תיאור'] || 'אימון'
+    });
+  });
+  DAYS.forEach(d=>{
+    Object.values(sched).forEach(hallDays=>{ if(!hallDays[d]) hallDays[d] = []; });
+  });
+  return sched;
+}
+
+function buildGames(rows){
+  const g = {};
+  rows.forEach(r=>{
+    const team = r['קבוצה'];
+    if(!team) return;
+    g[team] = { opponent: r['נגד_מי']||'', time: r['שעה']||'' };
+  });
+  return g;
+}
+
+function buildEvents(rows){
+  return rows.filter(r=>r['תאריך'] && r['שם']).map(r=>({
+    date: r['תאריך'],
+    label: r['שם'],
+    allDay: (r['כל_היום']||'').trim() === 'כן',
+    start: r['שעת_התחלה'] || null,
+    end: r['שעת_סיום'] || null
+  }));
+}
+
+function allCoaches(){
+  const set = new Set();
+  Object.values(schedule).forEach(days => Object.values(days).forEach(list =>
+    list.forEach(s => set.add(s.coach || "none"))));
+  return Array.from(set);
+}
+
+function fmtHour(h){ const hh=Math.floor(h); const mm=Math.round((h-hh)*60); return String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0'); }
+
+function renderTabs(){
+  const el = document.getElementById('hallTabs');
+  el.innerHTML = '';
+  Object.keys(schedule).forEach(hall=>{
+    const b = document.createElement('button');
+    b.className = 'hall-tab' + (hall===activeHall?' active':'');
+    b.textContent = hall;
+    b.onclick = ()=>{ activeHall = hall; renderAll(); };
+    el.appendChild(b);
+  });
+}
+
+function renderLegend(){
+  const el = document.getElementById('legend');
+  el.innerHTML = '<span class="legend-label">מאמנים:</span>';
+  allCoaches().forEach(c=>{
+    const chip = document.createElement('div');
+    chip.className = 'chip' + (dimmedCoach && dimmedCoach!==c ? ' dim':'');
+    chip.innerHTML = `<span class="dot" style="background:${COACH_COLOR[c]||COACH_COLOR.none}"></span>${c==='none'?'ללא שיוך':c}`;
+    chip.onclick = ()=>{ dimmedCoach = (dimmedCoach===c)?null:c; renderGrid(); renderLegend(); };
+    el.appendChild(chip);
+  });
+}
+
+function renderWeekLabel(){
+  const dates = getWeekDates(weekOffset);
+  document.getElementById('weekRange').textContent =
+    weekOffset===0 ? `השבוע · ${fmtDateFull(dates[0])} – ${fmtDateFull(dates[6])}` : `${fmtDateFull(dates[0])} – ${fmtDateFull(dates[6])}`;
+}
+
+function renderGrid(){
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  const weekDates = getWeekDates(weekOffset);
+  const today = new Date();
+
+  const corner = document.createElement('div');
+  grid.appendChild(corner);
+
+  DAYS.forEach((d,i)=>{
+    const isToday = isSameDate(weekDates[i], today);
+    const vac = getVacation(weekDates[i]);
+    const dateISO = toISODateLocal(weekDates[i]);
+    const count = ((schedule[activeHall]||{})[d]||[]).length;
+    const allDayEvents = events.filter(ev=>ev.date===dateISO && ev.allDay);
+    const h = document.createElement('div');
+    h.className = 'day-head';
+    h.style.color = isToday ? '#C4432F' : (vac ? '#2F6F62' : 'var(--ink)');
+    h.innerHTML = `${isToday?'<span class="today-badge">היום</span>':''}${d}
+      <span class="date-span" style="color:${isToday?'#C4432F':'var(--ink-soft)'}">${fmtDateShort(weekDates[i])}</span>
+      ${vac ? `<span class="vac-badge">${vac}</span>` : `<span class="sub-span">${count} אימונים</span>`}
+      ${allDayEvents.map(ev=>`<span class="event-chip">${ev.label}</span>`).join('')}`;
+    grid.appendChild(h);
+  });
+
+  const hourCol = document.createElement('div');
+  hourCol.className = 'hour-col';
+  for(let i=0;i<SLOTS;i++){
+    const hourVal = START_HOUR + i*(SLOT_MIN/60);
+    const cell = document.createElement('div');
+    cell.className = 'hour-label';
+    cell.textContent = Number.isInteger(hourVal) ? fmtHour(hourVal) : '';
+    hourCol.appendChild(cell);
+  }
+  grid.appendChild(hourCol);
+
+  DAYS.forEach((d,i)=>{
+    const vac = getVacation(weekDates[i]);
+    const isToday = isSameDate(weekDates[i], today);
+    const dateISO = toISODateLocal(weekDates[i]);
+    const sessions = (schedule[activeHall]||{})[d] || [];
+    const timedEvents = events.filter(ev=>ev.date===dateISO && !ev.allDay);
+    const col = document.createElement('div');
+    col.className = 'day-col';
+    col.style.background = vac
+      ? 'repeating-linear-gradient(135deg, rgba(47,111,98,.05), rgba(47,111,98,.05) 6px, rgba(47,111,98,.09) 6px, rgba(47,111,98,.09) 12px)'
+      : (isToday ? 'rgba(196,67,47,.045)' : 'transparent');
+    for(let i2=0;i2<SLOTS;i2++){
+      const line = document.createElement('div');
+      line.className = 'slot-line';
+      col.appendChild(line);
+    }
+    if(sessions.length===0 && timedEvents.length===0){
+      const empty = document.createElement('div');
+      empty.className='empty-day'; empty.textContent='—';
+      col.appendChild(empty);
+    }
+    sessions.forEach(s=>{
+      const startSlot = (s.start-START_HOUR)*(60/SLOT_MIN);
+      const spanSlots = Math.max(1, Math.round(s.duration*(60/SLOT_MIN)));
+      const coachKey = s.coach || 'none';
+      const isDim = dimmedCoach && dimmedCoach!==coachKey;
+      const block = document.createElement('div');
+      block.className = 'session' + (isDim?' dim':'');
+      block.style.background = COACH_COLOR[coachKey] || COACH_COLOR.none;
+      block.style.gridRow = `${Math.round(startSlot)+1} / span ${spanSlots}`;
+      block.title = s.label;
+      block.innerHTML = `${s.label}<span class="t">${fmtHour(s.start)}–${fmtHour(s.end)}</span>`;
+      col.appendChild(block);
+    });
+    timedEvents.forEach(ev=>{
+      const startH = Math.min(Math.max(timeStrToHour(ev.start), START_HOUR), END_HOUR-0.5);
+      const endH = Math.min(Math.max(timeStrToHour(ev.end), startH+0.5), END_HOUR);
+      const startSlot = (startH-START_HOUR)*(60/SLOT_MIN);
+      const spanSlots = Math.max(1, Math.round((endH-startH)*(60/SLOT_MIN)));
+      const block = document.createElement('div');
+      block.className = 'event-block';
+      block.style.gridRow = `${Math.round(startSlot)+1} / span ${spanSlots}`;
+      block.innerHTML = `📅 ${ev.label}<span class="t">${ev.start}–${ev.end}</span>`;
+      col.appendChild(block);
+    });
+    grid.appendChild(col);
+  });
+}
+
+function renderGames(){
+  const el = document.getElementById('gamesList');
+  const teams = Object.keys(games);
+  if(!teams.length){ el.innerHTML = '<div class="status">אין נתוני משחקים בגיליון</div>'; return; }
+  el.innerHTML = teams.map(t=>{
+    const g = games[t];
+    const info = (g.opponent || g.time) ? `נגד ${g.opponent||'—'} · ${g.time||'—'}` : 'אין משחק השבוע';
+    return `<div class="game-row"><span class="game-team">${t}</span><span class="game-info">${info}</span></div>`;
+  }).join('');
+}
+
+function renderAll(){
+  renderTabs();
+  renderLegend();
+  renderWeekLabel();
+  renderGrid();
+  renderGames();
+}
+
+document.getElementById('prevWeek').onclick = ()=>{ weekOffset -= 1; renderWeekLabel(); renderGrid(); };
+document.getElementById('nextWeek').onclick = ()=>{ weekOffset += 1; renderWeekLabel(); renderGrid(); };
+document.getElementById('todayBtn').onclick = ()=>{ weekOffset = 0; renderWeekLabel(); renderGrid(); };
+
+(async function init(){
+  try{
+    const [trainRows, eventRows, gameRows] = await Promise.all([
+      fetchCSV(CSV_TRAININGS), fetchCSV(CSV_EVENTS), fetchCSV(CSV_GAMES)
+    ]);
+    schedule = buildSchedule(trainRows);
+    events = buildEvents(eventRows);
+    games = buildGames(gameRows);
+    activeHall = Object.keys(schedule)[0];
+    renderAll();
+  }catch(e){
+    document.getElementById('grid').innerHTML = '<div class="status">שגיאה בטעינת הנתונים מהגיליון. בדוק שהקישורים עדיין מפורסמים.</div>';
+    document.getElementById('gamesList').innerHTML = '';
+    console.error(e);
+  }
+})();
+</script>
+</body>
+</html>
