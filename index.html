@@ -113,6 +113,18 @@
   .game-info{color:var(--ink-soft); font-size:13px;}
   .status{text-align:center; font-size:12.5px; color:var(--ink-soft); padding:20px;}
   footer.note{margin-top:18px; font-size:11.5px; color:var(--ink-soft); text-align:center;}
+
+  .transport-card{border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin-bottom:8px; background:var(--paper);}
+  .transport-card:last-child{margin-bottom:0;}
+  .transport-top{display:flex; align-items:center; gap:8px; margin-bottom:5px; flex-wrap:wrap;}
+  .transport-time{font-family:'Heebo',sans-serif; font-weight:800; font-size:14px; color:var(--ink);}
+  .transport-kind{font-size:10.5px; font-weight:700; padding:2px 9px; border-radius:999px;}
+  .transport-kind.pickup{background:rgba(66,86,143,.14); color:var(--c-eitan);}
+  .transport-kind.dropoff{background:rgba(196,67,47,.12); color:var(--accent);}
+  .transport-desc{font-size:12.5px; color:var(--ink); line-height:1.4; margin-bottom:5px;}
+  .transport-meta{display:flex; flex-wrap:wrap; gap:8px; font-size:11px; color:var(--ink-soft);}
+  .transport-meta .anaf{background:var(--paper-2); border-radius:6px; padding:2px 7px;}
+  .transport-empty{font-size:12px; color:var(--ink-soft); text-align:center; padding:14px 0;}
 </style>
 </head>
 <body>
@@ -172,6 +184,15 @@
     </div>
   </details>
 
+  <details class="section-card games transport">
+    <summary>🚌 הסעות לאימוני ומשחקי כדורסל<span class="chev">›</span></summary>
+    <div class="section-body">
+      <div class="school-tabs" id="transportDayTabs"></div>
+      <div id="transportList"></div>
+      <div class="dismissal-note">מקור: לוח הסעות 2026-2027 ספורט, מועצה אזורית יואב · מוצגות רק שורות הרלוונטיות לכדורסל</div>
+    </div>
+  </details>
+
   <footer class="note">הנתונים נמשכים בכל טעינה מגיליון Google Sheets · עדכון בגיליון מתעדכן כאן בפתיחה/רענון הבא</footer>
 </div>
 
@@ -220,6 +241,11 @@ const DISMISSAL = {
 const DISMISSAL_DAYS = ["ראשון","שני","שלישי","רביעי","חמישי","שישי"];
 const DAY_LETTER = {"ראשון":"א","שני":"ב","שלישי":"ג","רביעי":"ד","חמישי":"ה","שישי":"ו","שבת":"ש"};
 let activeSchool = Object.keys(DISMISSAL)[0];
+
+// הסעות רלוונטיות לכדורסל — מתוך לוח ההסעות 2026-2027 ספורט (מועצה אזורית יואב)
+const TRANSPORT = {"ראשון": [{"time": "06:00", "kind": "איסוף", "desc": "איסוף6:00בית גוברין(חד\"א)6:10גלאון חד\"א,6:15גת כולבו6:30רבדים חד\"א6:40 כ.הריף הרחבה לצפית גרוסמן", "anaf": "כ.סל ילדים ב", "coaches": "אור קליין", "size": "16"}, {"time": "13:40", "kind": "איסוף", "desc": "איסוף 13:40גת(בית ספר שדות יואב תחנות) לנגבה אולם", "anaf": "קטסל ב", "coaches": "עופרי", "size": "16"}, {"time": "14:20", "kind": "פיזור", "desc": "פיזור מנגבה אולם לשדה יואב,ורדון,סגולה,נחלה", "anaf": "כ.סל,טאקוונדואתלטיקה,פי", "coaches": "עופרי,שירן,עופר,עמית", "size": "19*2"}, {"time": "14:30", "kind": "פיזור", "desc": "פיזור מהאלה מגרש מקורה לגבע,כפר הריף,רבדים", "anaf": "כ.סל ילדים/כ.עף ילדים", "coaches": "צחי,עומר", "size": "19"}, {"time": "14:30", "kind": "", "desc": "כדורסל ילדים ב עולים על אוטובוס צהוב לנגבה", "anaf": "", "coaches": "עומר", "size": ""}, {"time": "15:00", "kind": "פיזור", "desc": "פיזור מנגבה אולם לשדה יואב,ורדון,סגולה,נחלה", "anaf": "כ.סל ג-ד", "coaches": "עופרי", "size": "19"}, {"time": "16:35", "kind": "פיזור", "desc": "פיזור מנגבה אולם שדה יואב,סגולה,נחלה,גת,בית ניר", "anaf": "קט סל ב", "coaches": "עופרי", "size": "19"}, {"time": "17:35", "kind": "פיזור", "desc": "פיזור מנגבה אולם שדה יואב,סגולה,ורדון", "anaf": "כ.סל ילדים ב", "coaches": "עומר", "size": "16"}], "שני": [{"time": "13:30", "kind": "איסוף", "desc": "איסוף מגת (בית ספר שדות יואב תחנות) לנגבה אולם", "anaf": "קט סל א", "coaches": "עומר", "size": "16"}, {"time": "14:15", "kind": "פיזור", "desc": "פיזור מגת אולם ספורט גלאון,בית ניר,בית גוברין", "anaf": "כ.סל ילדים א-ב", "coaches": "עופרי", "size": "16"}, {"time": "14:15", "kind": "איסוף", "desc": "איסוף מצפית אוטובוסים צהבים לנגבה", "anaf": "כ.סל ילדים ב", "coaches": "עומר", "size": ""}, {"time": "15:00", "kind": "פיזור", "desc": "פיזור מקיבוץ גת אולם ספורט גלאון,בית ניר,בית גוברין", "anaf": "כ.סל ילדים ג-ד", "coaches": "עופרי", "size": "16"}, {"time": "15:35", "kind": "פיזור", "desc": "פיזור מנגבה אולם ספורט  לשדה יואב,סגולה,נחלה,גת", "anaf": "קט סל א דרום", "coaches": "עומר", "size": "16"}, {"time": "16:20", "kind": "איסוף", "desc": "איסוף 16:20 רבדים תחנה חד\"א,16:25כ.הריף הרחבה למגרש המקורה", "anaf": "קט סל א צפון", "coaches": "איתן", "size": "16"}, {"time": "17:10", "kind": "פיזור", "desc": "פיזור מנגבה אולם ספורט לשדה יואב,סגולה,ורדון (גת ילדי לכיש?)", "anaf": "כ.סל ילדים ב", "coaches": "עומר", "size": "16"}, {"time": "19:00", "kind": "פיזור", "desc": "פיזור מצפית גרוסמן מגרש מקורה(אוסף ילדים)כ.הריף רבדים", "anaf": "כ.עף נערים,כ.סל נערים", "coaches": "צחי,דודו,איתן", "size": "16"}, {"time": "19:00", "kind": "פיזור", "desc": "פיזור מצפית גרוסמן סגולה,ורדון,נחלה,גת (יד נתן?)", "anaf": "כ.עף נערים,כ.סל נערים", "coaches": "צחי,דודו", "size": "16"}, {"time": "19:15", "kind": "פיזור", "desc": "פיזור מנגבה אולם ספורט  גת,גלאון,בית ניר        *3 ילדים", "anaf": "כ.סל נערים ב", "coaches": "עומר", "size": "16"}, {"time": "19:15", "kind": "פיזור", "desc": "פיזור מנגבה אולם ספורט רבדים,כפר הריף,כפר מנחם    *3 ילדים", "anaf": "כ.סל נערים ב", "coaches": "עומר", "size": "16"}], "שלישי": [{"time": "06:00", "kind": "איסוף", "desc": "איסוף 6:00נגבה הרחבה6:15 גת כולבו6:25ורדוןתחנה6:30נחלהתחנה כיכר ראשונה 6:45רבדים חד\"א לצפית ג", "anaf": "כ.סל נערים ב", "coaches": "דודו", "size": "16"}, {"time": "14:50", "kind": "פיזור", "desc": "פיזור מצפית גרוסמן סגולה,גת,גלאון,בית ניר", "anaf": "כ.סל נערים ב/ילדים א פוטב", "coaches": "עומר,דודו", "size": "16"}, {"time": "14:50", "kind": "פיזור", "desc": "פיזור מצפית גרוסמן כ.הריף רבדים שדה יואב,נגבה", "anaf": "כ.סל נערים ב/ילדים א פוטב", "coaches": "עומר/דודו", "size": "16"}, {"time": "16:30", "kind": "פיזור", "desc": "פיזור מצפית גרוסמן כ.הריף רבדים(יתכן ויהיה עוד ישוב)", "anaf": "כ.סל נוער", "coaches": "דודו", "size": "16"}], "רביעי": [{"time": "06:00", "kind": "איסוף", "desc": "איסוף 6:00 בית ניר הרחבה,6:05גלאון הרחבה,6:15גת כולבו,6:30 נגבה הרחבה,6:50כ.הריף הרחבה (סגולה?", "anaf": "כ.סל ילדים א", "coaches": "דודו", "size": "16"}, {"time": "13:30", "kind": "איסוף", "desc": "איסוף 13:30קיבוץ גת(בית ספר שדות יואב תחנות) לנגבה אולם ספורט   *(ילדי לכיש?)", "anaf": "קט סל ב", "coaches": "עופרי", "size": "16"}, {"time": "14:20", "kind": "", "desc": "כדורסל ילדים ב עולים על אוטובוס צהוב לנגבה   *(אפשרות גם ב15:00)", "anaf": "", "coaches": "עומר", "size": ""}, {"time": "14:20", "kind": "פיזור", "desc": "פיזור בית ספר האלה תחנות,מגרש מקורה,גבע,כ.הריף,רבדים     *(יתכן שצריך תגבור של עוד רכב)", "anaf": "כ.סל ילדים ,גודו", "coaches": "עומר,יעקב", "size": "19"}, {"time": "14:20", "kind": "פיזור", "desc": "פיזור מנגבה אולם ספורט לשדה יואב,ורדון,סגולה,נחלה              *(יתכן שצריך תגבור של עוד רכב)", "anaf": "כ.סל ג-ד,כ.עף ג-ו,קר", "coaches": "עופרי,גרי,דן", "size": "19"}, {"time": "16:00", "kind": "פיזור", "desc": "פיזור מנגבה אולם ספורט לשדה יואב,סגולה,נחלה ,גת,בית ניר", "anaf": "קט סל ב", "coaches": "עופרי", "size": "19"}, {"time": "16:20", "kind": "איסוף", "desc": "איסוף 16:20 רבדים תחנה חד\"א,16:25כ.הריף הרחבה לצפית גרוסמן", "anaf": "קט סל א", "coaches": "איתן", "size": "16"}, {"time": "17:10", "kind": "פיזור", "desc": "פיזור מנגבה אולם ספורט לשדה יואב,ורדון,סגולה       *(לכיש?)", "anaf": "כ.סל ילדים ב", "coaches": "עומר", "size": "16"}, {"time": "17:10", "kind": "פיזור", "desc": "פיזור מצפית גרוסמן לכ.הריף,חצור", "anaf": "כ.עף,כ.סל", "coaches": "צחי,גלי,אור", "size": "16"}, {"time": "17:10", "kind": "פיזור", "desc": "פיזור מצפית גרוסמן לרבדים,נגבה,שדה יואב", "anaf": "כ.עף כ.סל", "coaches": "צחי,גלי,אור", "size": "16"}, {"time": "17:10", "kind": "פיזור", "desc": "פיזור מצפית גרוסמן לורדון,סגולה,גת,גלאון,בית גוברין", "anaf": "כ.עף כ.סל", "coaches": "צחי,גלי,אור", "size": "16"}, {"time": "19:00", "kind": "פיזור", "desc": "פיזור מצפית גרוסמן כ.הריף,רבדים", "anaf": "קט סל א", "coaches": "איתן", "size": "16"}], "חמישי": [{"time": "13:30", "kind": "איסוף", "desc": "איסוף מגת (בית ספר שדות יואב תחנות) לנגבה אולם", "anaf": "קט סל א", "coaches": "עומר", "size": "16"}, {"time": "14:20", "kind": "איסוף", "desc": "איסוף מצפית אוטובוסים צהובים לנגבה", "anaf": "כ.סל נערים ב", "coaches": "עומר", "size": ""}, {"time": "15:30", "kind": "איסוף", "desc": "איסוף 15:30בית גוברין תחנה חד\"א,15:35 בית ניר תחנה הרחבה,15:40 גלאון תחנה הרחבה לגת אולם ספורט", "anaf": "כ.סל ג-ד", "coaches": "עופרי", "size": "16"}, {"time": "15:35", "kind": "פיזור", "desc": "פיזור מנגבה אולם ספורט לשדה יואב,סגולה,נחלה,גת", "anaf": "קט סל א", "coaches": "עומר", "size": "16"}, {"time": "17:00", "kind": "פיזור", "desc": "פיזור מקיבוץ גת אולם ספורט גלאון,בית ניר,בית גוברין", "anaf": "כ.סל ג-ד", "coaches": "עופרי", "size": "16"}, {"time": "17:10", "kind": "פיזור", "desc": "פיזור מנגבה אולם ספורט שני רכבים      *(לפתור מורכבות)", "anaf": "כ.סל נערים ב", "coaches": "עומר", "size": ""}, {"time": "17:15", "kind": "פיזור", "desc": "פיזור מצפית גרוסמן לרבדים,נגבה", "anaf": "כ.סל/כ.עף נערים", "coaches": "צחי,דודו", "size": "16"}, {"time": "17:15", "kind": "פיזור", "desc": "פיזור מצפית גרוסמן לכ.הריף,ורדון,סגולה,נחלה,גת", "anaf": "כ.סל/כ.עף נערים", "coaches": "צחי,דודו", "size": "16"}], "שישי": [{"time": "13:00", "kind": "פיזור", "desc": "פיזור מקיבוץ גת אולם ספורט לגלאון,בית ניר,בית גוברין", "anaf": "כ.סל א-ב", "coaches": "עופרי", "size": "16"}]};
+const TRANSPORT_DAYS = ["ראשון","שני","שלישי","רביעי","חמישי","שישי"];
+let activeTransportDay = TRANSPORT_DAYS.find(d => (TRANSPORT[d]||[]).length) || TRANSPORT_DAYS[0];
 
 const COACH_COLOR = {
   "דודו":"var(--c-dodu)", "אור":"var(--c-or)", "איתן":"var(--c-eitan)",
@@ -539,6 +565,39 @@ function renderDismissal(){
   }).join('');
 }
 
+function renderTransportTabs(){
+  const el = document.getElementById('transportDayTabs');
+  el.innerHTML = '';
+  TRANSPORT_DAYS.forEach(day=>{
+    const b = document.createElement('button');
+    b.className = 'school-tab' + (day===activeTransportDay ? ' active' : '');
+    b.textContent = `יום ${DAY_LETTER[day]}'`;
+    b.onclick = ()=>{ activeTransportDay = day; renderTransportTabs(); renderTransport(); };
+    el.appendChild(b);
+  });
+}
+
+function renderTransport(){
+  const el = document.getElementById('transportList');
+  const entries = TRANSPORT[activeTransportDay] || [];
+  if(!entries.length){
+    el.innerHTML = '<div class="transport-empty">אין הסעות כדורסל רשומות ליום זה</div>';
+    return;
+  }
+  el.innerHTML = entries.map(e=>{
+    const kindClass = e.kind==='איסוף' ? 'pickup' : (e.kind==='פיזור' ? 'dropoff' : '');
+    const kindBadge = e.kind ? `<span class="transport-kind ${kindClass}">${e.kind}</span>` : '';
+    const metaParts = [];
+    if(e.anaf) metaParts.push(`<span class="anaf">${e.anaf}</span>`);
+    if(e.coaches) metaParts.push(`<span>${e.coaches}</span>`);
+    return `<div class="transport-card">
+      <div class="transport-top"><span class="transport-time">${e.time}</span>${kindBadge}</div>
+      <div class="transport-desc">${e.desc}</div>
+      ${metaParts.length ? `<div class="transport-meta">${metaParts.join('')}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
 function renderAll(){
   renderTabs();
   renderLegend();
@@ -548,6 +607,8 @@ function renderAll(){
   renderMonth();
   renderSchoolTabs();
   renderDismissal();
+  renderTransportTabs();
+  renderTransport();
 }
 
 document.getElementById('prevWeek').onclick = ()=>{ weekOffset -= 1; renderWeekLabel(); renderGrid(); };
@@ -572,6 +633,8 @@ document.getElementById('nextMonth').onclick = ()=>{ monthOffset += 1; renderMon
     renderMonth();
     renderSchoolTabs();
     renderDismissal();
+    renderTransportTabs();
+    renderTransport();
     console.error(e);
   }
 })();
