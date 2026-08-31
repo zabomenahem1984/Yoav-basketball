@@ -41,7 +41,24 @@
   .legend-label{font-size:12px; color:var(--ink-soft); font-weight:600;}
   .chip{display:flex; align-items:center; gap:5px; font-size:12px; font-weight:600; padding:5px 10px; border-radius:999px; border:1.5px solid var(--line); background:#fff; cursor:pointer;}
   .chip.dim{opacity:.35;}
+  .chip.active{border-color:var(--ink); background:var(--paper-2);}
   .dot{width:8px; height:8px; border-radius:50%;}
+  .month-card{background:#fff; border:1px solid var(--line); border-radius:14px; padding:12px 14px; margin-bottom:12px; max-width:340px;}
+  .month-nav{display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;}
+  .nav-btn.small{width:26px; height:26px; font-size:14px; background:var(--paper-2); color:var(--ink);}
+  .month-label{font-family:'Heebo',sans-serif; font-weight:700; font-size:13px;}
+  .month-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:3px;}
+  .month-daylabel{font-size:9.5px; color:var(--ink-soft); text-align:center; font-weight:600; padding-bottom:2px;}
+  .month-cell{aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-size:11.5px; border-radius:7px; color:var(--ink); cursor:pointer; position:relative;}
+  .month-cell.empty{cursor:default;}
+  .month-cell.vac{background:rgba(47,111,98,.16); color:var(--teal); font-weight:700;}
+  .month-cell.today{outline:2px solid var(--accent); font-weight:700;}
+  .month-cell .ev-dot{position:absolute; bottom:2px; width:4px; height:4px; border-radius:50%; background:var(--purple);}
+  .month-legend{display:flex; gap:12px; margin-top:8px; font-size:10px; color:var(--ink-soft); flex-wrap:wrap;}
+  .month-legend .sw{display:inline-block; width:9px; height:9px; border-radius:3px; margin-inline-end:3px; vertical-align:middle;}
+  .month-legend .sw.vac{background:rgba(47,111,98,.4);}
+  .month-legend .sw.today{border:2px solid var(--accent); background:transparent;}
+  .month-legend .sw.ev{background:var(--purple); border-radius:50%;}
   .week-nav{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; background:var(--ink); color:var(--paper); border-radius:12px; padding:9px 14px; flex-wrap:wrap;}
   .nav-btn{font-family:'Heebo',sans-serif; font-size:18px; font-weight:700; background:rgba(255,255,255,.1); color:var(--paper); border:none; border-radius:8px; width:32px; height:32px; cursor:pointer;}
   .week-label{display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-family:'Heebo',sans-serif; font-weight:700; font-size:13px;}
@@ -88,6 +105,20 @@
   </header>
 
   <div class="legend" id="legend"><span class="legend-label">מאמנים:</span></div>
+
+  <div class="month-card">
+    <div class="month-nav">
+      <button class="nav-btn small" id="prevMonth">›</button>
+      <span id="monthLabel" class="month-label"></span>
+      <button class="nav-btn small" id="nextMonth">‹</button>
+    </div>
+    <div class="month-grid" id="monthGrid"></div>
+    <div class="month-legend">
+      <span><i class="sw vac"></i> חופשה/חג</span>
+      <span><i class="sw today"></i> היום</span>
+      <span><i class="sw ev"></i> יש אירוע</span>
+    </div>
+  </div>
 
   <div class="week-nav">
     <button class="nav-btn" id="prevWeek">›</button>
@@ -180,8 +211,9 @@ let schedule = {};   // hall -> day -> [{start,end,duration,coach,label}]
 let games = {};      // team -> {opponent, time}
 let events = [];      // [{date, label, allDay, start, end}]
 let activeHall = null;
-let dimmedCoach = null;
+let selectedCoaches = new Set(); // empty = show everyone
 let weekOffset = 0;
+let monthOffset = 0; // months relative to current month
 
 function buildSchedule(rows){
   const sched = {};
@@ -251,9 +283,12 @@ function renderLegend(){
   el.innerHTML = '<span class="legend-label">מאמנים:</span>';
   allCoaches().forEach(c=>{
     const chip = document.createElement('div');
-    chip.className = 'chip' + (dimmedCoach && dimmedCoach!==c ? ' dim':'');
+    chip.className = 'chip' + (selectedCoaches.size && !selectedCoaches.has(c) ? ' dim':'') + (selectedCoaches.has(c) ? ' active':'');
     chip.innerHTML = `<span class="dot" style="background:${COACH_COLOR[c]||COACH_COLOR.none}"></span>${c==='none'?'ללא שיוך':c}`;
-    chip.onclick = ()=>{ dimmedCoach = (dimmedCoach===c)?null:c; renderGrid(); renderLegend(); };
+    chip.onclick = ()=>{
+      if(selectedCoaches.has(c)) selectedCoaches.delete(c); else selectedCoaches.add(c);
+      renderGrid(); renderLegend();
+    };
     el.appendChild(chip);
   });
 }
@@ -325,7 +360,7 @@ function renderGrid(){
       const startSlot = (s.start-START_HOUR)*(60/SLOT_MIN);
       const spanSlots = Math.max(1, Math.round(s.duration*(60/SLOT_MIN)));
       const coachKey = s.coach || 'none';
-      const isDim = dimmedCoach && dimmedCoach!==coachKey;
+      const isDim = selectedCoaches.size && !selectedCoaches.has(coachKey);
       const block = document.createElement('div');
       block.className = 'session' + (isDim?' dim':'');
       block.style.background = COACH_COLOR[coachKey] || COACH_COLOR.none;
@@ -360,17 +395,64 @@ function renderGames(){
   }).join('');
 }
 
+function renderMonth(){
+  const base = new Date();
+  const target = new Date(base.getFullYear(), base.getMonth()+monthOffset, 1);
+  const year = target.getFullYear(), month = target.getMonth();
+  document.getElementById('monthLabel').textContent = target.toLocaleDateString('he-IL', {month:'long', year:'numeric'});
+
+  const dayLabels = ["א","ב","ג","ד","ה","ו","ש"];
+  const firstDay = new Date(year, month, 1);
+  const startOffset = firstDay.getDay(); // 0=Sunday
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const today = new Date();
+
+  const grid = document.getElementById('monthGrid');
+  grid.innerHTML = '';
+  dayLabels.forEach(l=>{
+    const el = document.createElement('div');
+    el.className = 'month-daylabel';
+    el.textContent = l;
+    grid.appendChild(el);
+  });
+  for(let i=0;i<startOffset;i++){
+    const el = document.createElement('div');
+    el.className = 'month-cell empty';
+    grid.appendChild(el);
+  }
+  for(let d=1; d<=daysInMonth; d++){
+    const date = new Date(year, month, d);
+    const iso = toISODateLocal(date);
+    const vac = getVacation(date);
+    const isToday = isSameDate(date, today);
+    const hasEvent = events.some(ev=>ev.date===iso);
+    const cell = document.createElement('div');
+    cell.className = 'month-cell' + (vac?' vac':'') + (isToday?' today':'');
+    cell.title = vac || '';
+    cell.innerHTML = String(d) + (hasEvent ? '<span class="ev-dot"></span>' : '');
+    cell.onclick = ()=>{
+      const diffDays = Math.round((date - getWeekStart(0)) / 86400000);
+      weekOffset = Math.floor(diffDays / 7);
+      renderWeekLabel(); renderGrid();
+    };
+    grid.appendChild(cell);
+  }
+}
+
 function renderAll(){
   renderTabs();
   renderLegend();
   renderWeekLabel();
   renderGrid();
   renderGames();
+  renderMonth();
 }
 
 document.getElementById('prevWeek').onclick = ()=>{ weekOffset -= 1; renderWeekLabel(); renderGrid(); };
 document.getElementById('nextWeek').onclick = ()=>{ weekOffset += 1; renderWeekLabel(); renderGrid(); };
 document.getElementById('todayBtn').onclick = ()=>{ weekOffset = 0; renderWeekLabel(); renderGrid(); };
+document.getElementById('prevMonth').onclick = ()=>{ monthOffset -= 1; renderMonth(); };
+document.getElementById('nextMonth').onclick = ()=>{ monthOffset += 1; renderMonth(); };
 
 (async function init(){
   try{
@@ -385,6 +467,7 @@ document.getElementById('todayBtn').onclick = ()=>{ weekOffset = 0; renderWeekLa
   }catch(e){
     document.getElementById('grid').innerHTML = '<div class="status">שגיאה בטעינת הנתונים מהגיליון. בדוק שהקישורים עדיין מפורסמים.</div>';
     document.getElementById('gamesList').innerHTML = '';
+    renderMonth();
     console.error(e);
   }
 })();
