@@ -125,6 +125,13 @@
   .transport-meta{display:flex; flex-wrap:wrap; gap:8px; font-size:11px; color:var(--ink-soft);}
   .transport-meta .anaf{background:var(--paper-2); border-radius:6px; padding:2px 7px;}
   .transport-empty{font-size:12px; color:var(--ink-soft); text-align:center; padding:14px 0;}
+
+  .player-row{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 0; border-bottom:1px solid var(--line); flex-wrap:wrap;}
+  .player-row:last-child{border-bottom:none;}
+  .player-name{font-weight:700; font-size:13.5px; color:var(--ink);}
+  .player-tags{display:flex; gap:6px; flex-wrap:wrap;}
+  .player-tag{font-size:11.5px; font-weight:600; background:var(--paper-2); border-radius:8px; padding:4px 9px; color:var(--ink-soft); white-space:nowrap;}
+  .roster-count{font-size:11.5px; color:var(--ink-soft); margin-bottom:8px;}
 </style>
 </head>
 <body>
@@ -193,6 +200,15 @@
     </div>
   </details>
 
+  <details class="section-card games roster">
+    <summary>👕 קבוצות ושחקנים<span class="chev">›</span></summary>
+    <div class="section-body">
+      <div class="school-tabs" id="rosterTabs"></div>
+      <div id="rosterList"></div>
+      <div class="dismissal-note">מידה ומספר הם לפי טופס ההרשמה — המספר עשוי לשקף העדפה ולא הקצאה סופית</div>
+    </div>
+  </details>
+
   <footer class="note">הנתונים נמשכים בכל טעינה מגיליון Google Sheets · עדכון בגיליון מתעדכן כאן בפתיחה/רענון הבא</footer>
 </div>
 
@@ -246,6 +262,10 @@ let activeSchool = Object.keys(DISMISSAL)[0];
 const TRANSPORT = {"ראשון": [{"time": "06:00", "kind": "איסוף", "desc": "איסוף6:00בית גוברין(חד\"א)6:10גלאון חד\"א,6:15גת כולבו6:30רבדים חד\"א6:40 כ.הריף הרחבה לצפית גרוסמן", "anaf": "כ.סל ילדים ב", "coaches": "אור קליין", "size": "16"}, {"time": "13:40", "kind": "איסוף", "desc": "איסוף 13:40גת(בית ספר שדות יואב תחנות) לנגבה אולם", "anaf": "קטסל ב", "coaches": "עופרי", "size": "16"}, {"time": "14:20", "kind": "פיזור", "desc": "פיזור מנגבה אולם לשדה יואב,ורדון,סגולה,נחלה", "anaf": "כ.סל,טאקוונדואתלטיקה,פי", "coaches": "עופרי,שירן,עופר,עמית", "size": "19*2"}, {"time": "14:30", "kind": "פיזור", "desc": "פיזור מהאלה מגרש מקורה לגבע,כפר הריף,רבדים", "anaf": "כ.סל ילדים/כ.עף ילדים", "coaches": "צחי,עומר", "size": "19"}, {"time": "14:30", "kind": "", "desc": "כדורסל ילדים ב עולים על אוטובוס צהוב לנגבה", "anaf": "", "coaches": "עומר", "size": ""}, {"time": "15:00", "kind": "פיזור", "desc": "פיזור מנגבה אולם לשדה יואב,ורדון,סגולה,נחלה", "anaf": "כ.סל ג-ד", "coaches": "עופרי", "size": "19"}, {"time": "16:35", "kind": "פיזור", "desc": "פיזור מנגבה אולם שדה יואב,סגולה,נחלה,גת,בית ניר", "anaf": "קט סל ב", "coaches": "עופרי", "size": "19"}, {"time": "17:35", "kind": "פיזור", "desc": "פיזור מנגבה אולם שדה יואב,סגולה,ורדון", "anaf": "כ.סל ילדים ב", "coaches": "עומר", "size": "16"}], "שני": [{"time": "13:30", "kind": "איסוף", "desc": "איסוף מגת (בית ספר שדות יואב תחנות) לנגבה אולם", "anaf": "קט סל א", "coaches": "עומר", "size": "16"}, {"time": "14:15", "kind": "פיזור", "desc": "פיזור מגת אולם ספורט גלאון,בית ניר,בית גוברין", "anaf": "כ.סל ילדים א-ב", "coaches": "עופרי", "size": "16"}, {"time": "14:15", "kind": "איסוף", "desc": "איסוף מצפית אוטובוסים צהבים לנגבה", "anaf": "כ.סל ילדים ב", "coaches": "עומר", "size": ""}, {"time": "15:00", "kind": "פיזור", "desc": "פיזור מקיבוץ גת אולם ספורט גלאון,בית ניר,בית גוברין", "anaf": "כ.סל ילדים ג-ד", "coaches": "עופרי", "size": "16"}, {"time": "15:35", "kind": "פיזור", "desc": "פיזור מנגבה אולם ספורט  לשדה יואב,סגולה,נחלה,גת", "anaf": "קט סל א דרום", "coaches": "עומר", "size": "16"}, {"time": "16:20", "kind": "איסוף", "desc": "איסוף 16:20 רבדים תחנה חד\"א,16:25כ.הריף הרחבה למגרש המקורה", "anaf": "קט סל א צפון", "coaches": "איתן", "size": "16"}, {"time": "17:10", "kind": "פיזור", "desc": "פיזור מנגבה אולם ספורט לשדה יואב,סגולה,ורדון (גת ילדי לכיש?)", "anaf": "כ.סל ילדים ב", "coaches": "עומר", "size": "16"}, {"time": "19:00", "kind": "פיזור", "desc": "פיזור מצפית גרוסמן מגרש מקורה(אוסף ילדים)כ.הריף רבדים", "anaf": "כ.עף נערים,כ.סל נערים", "coaches": "צחי,דודו,איתן", "size": "16"}, {"time": "19:00", "kind": "פיזור", "desc": "פיזור מצפית גרוסמן סגולה,ורדון,נחלה,גת (יד נתן?)", "anaf": "כ.עף נערים,כ.סל נערים", "coaches": "צחי,דודו", "size": "16"}, {"time": "19:15", "kind": "פיזור", "desc": "פיזור מנגבה אולם ספורט  גת,גלאון,בית ניר        *3 ילדים", "anaf": "כ.סל נערים ב", "coaches": "עומר", "size": "16"}, {"time": "19:15", "kind": "פיזור", "desc": "פיזור מנגבה אולם ספורט רבדים,כפר הריף,כפר מנחם    *3 ילדים", "anaf": "כ.סל נערים ב", "coaches": "עומר", "size": "16"}], "שלישי": [{"time": "06:00", "kind": "איסוף", "desc": "איסוף 6:00נגבה הרחבה6:15 גת כולבו6:25ורדוןתחנה6:30נחלהתחנה כיכר ראשונה 6:45רבדים חד\"א לצפית ג", "anaf": "כ.סל נערים ב", "coaches": "דודו", "size": "16"}, {"time": "14:50", "kind": "פיזור", "desc": "פיזור מצפית גרוסמן סגולה,גת,גלאון,בית ניר", "anaf": "כ.סל נערים ב/ילדים א פוטב", "coaches": "עומר,דודו", "size": "16"}, {"time": "14:50", "kind": "פיזור", "desc": "פיזור מצפית גרוסמן כ.הריף רבדים שדה יואב,נגבה", "anaf": "כ.סל נערים ב/ילדים א פוטב", "coaches": "עומר/דודו", "size": "16"}, {"time": "16:30", "kind": "פיזור", "desc": "פיזור מצפית גרוסמן כ.הריף רבדים(יתכן ויהיה עוד ישוב)", "anaf": "כ.סל נוער", "coaches": "דודו", "size": "16"}], "רביעי": [{"time": "06:00", "kind": "איסוף", "desc": "איסוף 6:00 בית ניר הרחבה,6:05גלאון הרחבה,6:15גת כולבו,6:30 נגבה הרחבה,6:50כ.הריף הרחבה (סגולה?", "anaf": "כ.סל ילדים א", "coaches": "דודו", "size": "16"}, {"time": "13:30", "kind": "איסוף", "desc": "איסוף 13:30קיבוץ גת(בית ספר שדות יואב תחנות) לנגבה אולם ספורט   *(ילדי לכיש?)", "anaf": "קט סל ב", "coaches": "עופרי", "size": "16"}, {"time": "14:20", "kind": "", "desc": "כדורסל ילדים ב עולים על אוטובוס צהוב לנגבה   *(אפשרות גם ב15:00)", "anaf": "", "coaches": "עומר", "size": ""}, {"time": "14:20", "kind": "פיזור", "desc": "פיזור בית ספר האלה תחנות,מגרש מקורה,גבע,כ.הריף,רבדים     *(יתכן שצריך תגבור של עוד רכב)", "anaf": "כ.סל ילדים ,גודו", "coaches": "עומר,יעקב", "size": "19"}, {"time": "14:20", "kind": "פיזור", "desc": "פיזור מנגבה אולם ספורט לשדה יואב,ורדון,סגולה,נחלה              *(יתכן שצריך תגבור של עוד רכב)", "anaf": "כ.סל ג-ד,כ.עף ג-ו,קר", "coaches": "עופרי,גרי,דן", "size": "19"}, {"time": "16:00", "kind": "פיזור", "desc": "פיזור מנגבה אולם ספורט לשדה יואב,סגולה,נחלה ,גת,בית ניר", "anaf": "קט סל ב", "coaches": "עופרי", "size": "19"}, {"time": "16:20", "kind": "איסוף", "desc": "איסוף 16:20 רבדים תחנה חד\"א,16:25כ.הריף הרחבה לצפית גרוסמן", "anaf": "קט סל א", "coaches": "איתן", "size": "16"}, {"time": "17:10", "kind": "פיזור", "desc": "פיזור מנגבה אולם ספורט לשדה יואב,ורדון,סגולה       *(לכיש?)", "anaf": "כ.סל ילדים ב", "coaches": "עומר", "size": "16"}, {"time": "17:10", "kind": "פיזור", "desc": "פיזור מצפית גרוסמן לכ.הריף,חצור", "anaf": "כ.עף,כ.סל", "coaches": "צחי,גלי,אור", "size": "16"}, {"time": "17:10", "kind": "פיזור", "desc": "פיזור מצפית גרוסמן לרבדים,נגבה,שדה יואב", "anaf": "כ.עף כ.סל", "coaches": "צחי,גלי,אור", "size": "16"}, {"time": "17:10", "kind": "פיזור", "desc": "פיזור מצפית גרוסמן לורדון,סגולה,גת,גלאון,בית גוברין", "anaf": "כ.עף כ.סל", "coaches": "צחי,גלי,אור", "size": "16"}, {"time": "19:00", "kind": "פיזור", "desc": "פיזור מצפית גרוסמן כ.הריף,רבדים", "anaf": "קט סל א", "coaches": "איתן", "size": "16"}], "חמישי": [{"time": "13:30", "kind": "איסוף", "desc": "איסוף מגת (בית ספר שדות יואב תחנות) לנגבה אולם", "anaf": "קט סל א", "coaches": "עומר", "size": "16"}, {"time": "14:20", "kind": "איסוף", "desc": "איסוף מצפית אוטובוסים צהובים לנגבה", "anaf": "כ.סל נערים ב", "coaches": "עומר", "size": ""}, {"time": "15:30", "kind": "איסוף", "desc": "איסוף 15:30בית גוברין תחנה חד\"א,15:35 בית ניר תחנה הרחבה,15:40 גלאון תחנה הרחבה לגת אולם ספורט", "anaf": "כ.סל ג-ד", "coaches": "עופרי", "size": "16"}, {"time": "15:35", "kind": "פיזור", "desc": "פיזור מנגבה אולם ספורט לשדה יואב,סגולה,נחלה,גת", "anaf": "קט סל א", "coaches": "עומר", "size": "16"}, {"time": "17:00", "kind": "פיזור", "desc": "פיזור מקיבוץ גת אולם ספורט גלאון,בית ניר,בית גוברין", "anaf": "כ.סל ג-ד", "coaches": "עופרי", "size": "16"}, {"time": "17:10", "kind": "פיזור", "desc": "פיזור מנגבה אולם ספורט שני רכבים      *(לפתור מורכבות)", "anaf": "כ.סל נערים ב", "coaches": "עומר", "size": ""}, {"time": "17:15", "kind": "פיזור", "desc": "פיזור מצפית גרוסמן לרבדים,נגבה", "anaf": "כ.סל/כ.עף נערים", "coaches": "צחי,דודו", "size": "16"}, {"time": "17:15", "kind": "פיזור", "desc": "פיזור מצפית גרוסמן לכ.הריף,ורדון,סגולה,נחלה,גת", "anaf": "כ.סל/כ.עף נערים", "coaches": "צחי,דודו", "size": "16"}], "שישי": [{"time": "13:00", "kind": "פיזור", "desc": "פיזור מקיבוץ גת אולם ספורט לגלאון,בית ניר,בית גוברין", "anaf": "כ.סל א-ב", "coaches": "עופרי", "size": "16"}]};
 const TRANSPORT_DAYS = ["ראשון","שני","שלישי","רביעי","חמישי","שישי"];
 let activeTransportDay = TRANSPORT_DAYS.find(d => (TRANSPORT[d]||[]).length) || TRANSPORT_DAYS[0];
+
+// סד"כ קבוצות — שם, מידה ומספר מבוקש בלבד (בכוונה בלי תאריך לידה/פרטים מזהים נוספים)
+const ROSTER = {"נערים ב' עומר": [{"name": "אורי", "size": "M", "number": "7"}, {"name": "אורי סימון", "size": "M", "number": "18"}, {"name": "אלון שלו", "size": "S", "number": "77"}, {"name": "דניאל בן שיטרית", "size": "M", "number": "17"}, {"name": "יותם לוי", "size": "10", "number": ""}, {"name": "ירדן ריגבי", "size": "L", "number": "5"}, {"name": "לירי", "size": "XL", "number": "11"}, {"name": "לירי קריקון", "size": "XL", "number": "11"}, {"name": "ניר אשר", "size": "L", "number": "21או 21"}, {"name": "עומר ארנפריד", "size": "S", "number": "23,23"}, {"name": "עומר מלול", "size": "M", "number": "20"}], "ילדים ב' עופרי": [{"name": "איליי זקסר", "size": "18", "number": "עדיפות ראשונה - 6, עדיפות שניה - 8"}, {"name": "אלון קצף", "size": "M", "number": "23/24"}, {"name": "יפתח גלילי", "size": "M", "number": "14"}, {"name": "ניר אשכנזי", "size": "M", "number": "45 העדפה ראשונה, 44 העדפה שנייה"}, {"name": "עומרי אורן", "size": "18", "number": "5 או 12"}], "שדות יואב עופרי": [{"name": "אריאל בוטבול", "size": "10", "number": "34,46"}, {"name": "אריאל מקס בוטבול", "size": "10", "number": "34/46"}, {"name": "דניאל נבט מרגוליס", "size": "S", "number": "12 ו-13"}, {"name": "עידן אורן", "size": "14", "number": "עדיף 5 ואם לא אז 85"}], "קט סל ב' עופרי": [{"name": "איתמר צלניקר", "size": "14", "number": "6, 8"}, {"name": "אסיף רייס", "size": "12", "number": "19, 24"}, {"name": "אריאל", "size": "10", "number": "8,42"}, {"name": "בנג'מין סמיטסון", "size": "16", "number": "10 7"}, {"name": "בנג'מין סמיתסון", "size": "16", "number": "00 7"}, {"name": "גפן בן חמו", "size": "14", "number": "8, 10"}, {"name": "דניאל שיק", "size": "14", "number": "8, 14"}, {"name": "זיו צביאלי", "size": "16", "number": "42,2"}, {"name": "זיו קריגר", "size": "12", "number": ""}, {"name": "יהלי חן", "size": "12", "number": "9/11"}, {"name": "יואב דגמי", "size": "12", "number": "עדיפות ראשונה 8, עדיפות שניה 6"}, {"name": "ינאי מקמל", "size": "14", "number": "25 / 12"}, {"name": "לביא קאוג'יסקי", "size": "16", "number": "1 10"}, {"name": "לביא קאוג׳יסקי", "size": "18", "number": "18"}, {"name": "מיכאל", "size": "10", "number": "23. 11"}, {"name": "נועם ריין", "size": "14", "number": "1 או 8 או 41"}, {"name": "נריה שפר", "size": "16", "number": "5! 8"}], "נערים א' דודו": [{"name": "אייל שלזינגר", "size": "L", "number": "5 או 4 עדיפות ל5"}, {"name": "איתן לורבר", "size": "10, 16, M", "number": "17"}, {"name": "אלון בן עזרא", "size": "XL", "number": "12"}, {"name": "אלון בנגלס", "size": "XL", "number": "העדפה ראשונה 10 העדפה שניה 8"}, {"name": "אלון פלדמן", "size": "L", "number": "6 66"}, {"name": "הילל", "size": "XL", "number": "1"}, {"name": "יקיר חזות", "size": "XXL", "number": "18+15"}, {"name": "יקיר חסות", "size": "XXL", "number": "18+8"}, {"name": "מורן בר", "size": "L", "number": "8, 23"}, {"name": "מצן אברהמי", "size": "M", "number": "2 12מעדיף שתיים"}, {"name": "נטע שגב", "size": "M", "number": "12"}, {"name": "עוז אלון", "size": "L", "number": "30"}, {"name": "רון שינדלר", "size": "XL", "number": "55"}, {"name": "רועי", "size": "L", "number": "22 10"}, {"name": "רועי ברקול", "size": "L", "number": "22 עדיפות ראשונה 10 עדיפות שניה"}, {"name": "רז כדר", "size": "L", "number": "11 3"}, {"name": "רני סטביק", "size": "M", "number": "14 , 14"}], "ילדים ב' אור+צדוק": [{"name": "אדר מרסיאנו", "size": "16", "number": "24. אם לא אז 14"}, {"name": "אורי ברושי", "size": "18, S", "number": "34 עדיפות ראשונה 18 עדיפות שנייה"}, {"name": "אסף בריל", "size": "18", "number": "30 או 23"}, {"name": "אסף וקולקר", "size": "M", "number": "6"}, {"name": "ארבל אמסילי", "size": "18", "number": "8"}, {"name": "ארבל גרוס", "size": "M", "number": "23/30"}, {"name": "אריאל אושעיה", "size": "16", "number": "10"}, {"name": "גיל חיות", "size": "S", "number": "23, 24"}, {"name": "הלל צלניקר", "size": "16", "number": "15"}, {"name": "יהונתן אראמי", "size": "16", "number": "24"}, {"name": "יואב", "size": "18", "number": "30 או 8"}, {"name": "יואב בר", "size": "18", "number": "30 / 8"}, {"name": "יואב סלע", "size": "18", "number": "30"}, {"name": "יובל דודאי", "size": "S", "number": "11"}, {"name": "יפתח באום", "size": "M", "number": "9 / 1 עם עדיפות גדולה מאוד ל 9"}, {"name": "ליאור אשכנזי", "size": "16", "number": "10"}, {"name": "סהר קרייזלר", "size": "M", "number": "54"}, {"name": "עומר צרפתי", "size": "16", "number": "להמשיך עם מספר 21 עדיפות ראשונה. 15 עדיפות שניה"}, {"name": "רום אלון", "size": "16", "number": "1"}, {"name": "שחר רוזנברג", "size": "12", "number": "58"}, {"name": "תום גלזר", "size": "XL", "number": "19"}], "קט סל א' איתן": [{"name": "אילון קצביץ׳ פרסלר", "size": "16", "number": "העדפה ראשונה - 34, העדפה שנייה - 1"}, {"name": "הראל יעקב", "size": "S", "number": "35 / 23"}, {"name": "יהב קצביץ׳ פרסלר", "size": "16", "number": "אופציה ראשונה - 30; אופציה שנייה - 11"}, {"name": "נדב אהרון", "size": "M", "number": ""}, {"name": "נדב אהרון בונן", "size": "L", "number": "23"}, {"name": "עידו בקשי", "size": "14", "number": "1 או 11"}, {"name": "עמרי קראוס", "size": "16", "number": "1 7"}, {"name": "תום ריגבי", "size": "S", "number": "8"}], "קט סל א' צדוק": [{"name": "אופק", "size": "10", "number": "23, 26"}, {"name": "אורי לוי", "size": "14", "number": "72 או 19"}, {"name": "אורי סטביק", "size": "16, 18", "number": "14"}, {"name": "איתמר שורץ", "size": "16", "number": "אופציה ראשונה 10, אופציה 7"}, {"name": "אלון בולקובשטיין", "size": "14", "number": "23"}, {"name": "יואב אשר", "size": "14", "number": "1 או 10"}, {"name": "יואב בן עזרא", "size": "S", "number": "21"}, {"name": "יותם שטיינר", "size": "12", "number": "6/ 15"}, {"name": "יער עמרם-נתיב", "size": "S", "number": "22 / 14"}, {"name": "ענבר רוסו", "size": "14", "number": "24, 47"}], "נוער דודו": [{"name": "אסף יולזרי", "size": "10, M, XXL", "number": "1/0"}, {"name": "בן קמה", "size": "XL", "number": "3"}, {"name": "גלי", "size": "M", "number": ""}, {"name": "טל שטדלר בקרמן", "size": "L", "number": "12 30"}, {"name": "נטע שגב", "size": "M", "number": "12"}, {"name": "עדי מחלין", "size": "XL", "number": "7,11"}, {"name": "עומר", "size": "XL", "number": "3,4"}, {"name": "עומר טנצר", "size": "XL", "number": "3"}, {"name": "רותם גרוסמן", "size": "XL", "number": "0"}, {"name": "ריף בארי", "size": "L, XL", "number": "12 2"}], "ילדים א' דודו": [{"name": "אסף עזרן", "size": "S", "number": "0"}, {"name": "דן חיים רואימי", "size": "S", "number": "23"}, {"name": "עמיחי פינגולד", "size": "S", "number": "17, 19"}], "קט סל א' עומר": [{"name": "אופק", "size": "10", "number": "2 ו- 4"}, {"name": "יותם שטיינר", "size": "12", "number": "6/ 15"}, {"name": "יער עמרם-נתיב", "size": "18", "number": "22 / 14"}]};
+let activeRosterTeam = Object.keys(ROSTER)[0];
 
 const COACH_COLOR = {
   "דודו":"var(--c-dodu)", "אור":"var(--c-or)", "איתן":"var(--c-eitan)",
@@ -598,6 +618,34 @@ function renderTransport(){
   }).join('');
 }
 
+function renderRosterTabs(){
+  const el = document.getElementById('rosterTabs');
+  el.innerHTML = '';
+  Object.keys(ROSTER).forEach(team=>{
+    const b = document.createElement('button');
+    b.className = 'school-tab' + (team===activeRosterTeam ? ' active' : '');
+    b.textContent = team;
+    b.onclick = ()=>{ activeRosterTeam = team; renderRosterTabs(); renderRoster(); };
+    el.appendChild(b);
+  });
+}
+
+function renderRoster(){
+  const el = document.getElementById('rosterList');
+  const players = ROSTER[activeRosterTeam] || [];
+  const countEl = `<div class="roster-count">${players.length} שחקנים</div>`;
+  if(!players.length){
+    el.innerHTML = countEl + '<div class="transport-empty">אין שחקנים רשומים</div>';
+    return;
+  }
+  el.innerHTML = countEl + players.map(p=>{
+    const tags = [];
+    if(p.size) tags.push(`<span class="player-tag">מידה: ${p.size}</span>`);
+    if(p.number) tags.push(`<span class="player-tag">מס': ${p.number}</span>`);
+    return `<div class="player-row"><span class="player-name">${p.name}</span><div class="player-tags">${tags.join('')}</div></div>`;
+  }).join('');
+}
+
 function renderAll(){
   renderTabs();
   renderLegend();
@@ -609,6 +657,8 @@ function renderAll(){
   renderDismissal();
   renderTransportTabs();
   renderTransport();
+  renderRosterTabs();
+  renderRoster();
 }
 
 document.getElementById('prevWeek').onclick = ()=>{ weekOffset -= 1; renderWeekLabel(); renderGrid(); };
@@ -635,6 +685,8 @@ document.getElementById('nextMonth').onclick = ()=>{ monthOffset += 1; renderMon
     renderDismissal();
     renderTransportTabs();
     renderTransport();
+    renderRosterTabs();
+    renderRoster();
     console.error(e);
   }
 })();
