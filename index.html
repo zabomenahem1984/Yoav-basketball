@@ -25,7 +25,7 @@
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
-  body{background:var(--paper); color:var(--ink); font-family:'Rubik',system-ui,sans-serif; font-size:13.5px; padding:14px 12px 36px; min-height:100vh;}
+  body{background:var(--paper); color:var(--ink); font-family:'Rubik',system-ui,sans-serif; font-size:14.5px; padding:14px 12px 36px; min-height:100vh;}
   a, button, .chip, .hall-tab, .school-tab, .month-cell, summary{-webkit-tap-highlight-color:rgba(0,0,0,.08);}
   button:focus-visible, summary:focus-visible, .month-cell:focus-visible{outline:2.5px solid var(--accent); outline-offset:2px;}
   .wrap{max-width:1180px; margin:0 auto;}
@@ -77,24 +77,26 @@
   .nav-btn{font-family:'Heebo',sans-serif; font-size:17px; font-weight:700; background:rgba(255,255,255,.12); color:var(--paper); border:none; border-radius:7px; width:31px; height:31px; cursor:pointer;}
   .week-label{display:flex; align-items:center; gap:7px; flex-wrap:wrap; font-family:'Heebo',sans-serif; font-weight:700; font-size:12px;}
   .today-btn{font-size:11px; font-weight:600; background:var(--wood); color:var(--ink); border:none; border-radius:999px; padding:6px 12px; min-height:27px; cursor:pointer;}
-  .board{background:#fff; border:1px solid var(--line); border-radius:14px; padding:10px; overflow-x:auto;}
-  .grid{display:grid; grid-template-columns:44px repeat(7,minmax(96px,1fr)); min-width:760px;}
-  .day-head{font-family:'Heebo',sans-serif; font-weight:700; font-size:11.5px; text-align:center; padding:6px 3px 8px; border-bottom:2px solid var(--ink); background:#fff;}
-  .today-badge{display:inline-block; font-size:8px; font-weight:700; background:var(--accent); color:#fff; border-radius:5px; padding:1px 5px; margin-bottom:2px;}
-  .date-span{display:block; font-size:9.5px; margin-top:1px;}
-  .sub-span{display:block; font-weight:500; font-size:9.5px; color:var(--ink-soft); margin-top:2px;}
-  .vac-badge{display:block; font-size:8.5px; font-weight:600; color:var(--teal); margin-top:2px;}
-  .event-chip{display:block; font-size:8.5px; font-weight:700; color:var(--purple); margin-top:2px;}
-  .hour-col{position:relative; border-inline-end:1px dashed var(--line);}
-  .hour-label{position:absolute; inset-inline:0; text-align:center; font-size:8.5px; color:var(--ink-soft); transform:translateY(-50%); line-height:1; pointer-events:none;}
-  .day-col{position:relative; display:grid; grid-template-rows:repeat(32,16px); border-inline-end:1px solid var(--line);}
-  .day-col:last-child{border-inline-end:none;}
-  .slot-line{border-bottom:1px solid var(--line);}
-  .session{position:absolute; inset-inline:2px; border-radius:6px; padding:3px 5px; font-size:9.5px; line-height:1.2; font-weight:600; color:#fff; overflow:hidden; box-shadow:0 1px 2px rgba(0,0,0,.15);}
-  .session.dim{opacity:.18;}
-  .session .t{display:block; font-weight:500; font-size:8px; opacity:.85;}
-  .event-block{position:absolute; inset-inline:2px; border-radius:6px; padding:3px 5px; font-size:9.5px; line-height:1.2; font-weight:600; color:var(--purple); background:#F1EBFA; border:1.5px dashed var(--purple); overflow:hidden;}
-  .empty-day{display:flex; align-items:center; justify-content:center; height:100%; color:var(--ink-soft); font-size:9.5px; padding-top:40%;}
+  .board{background:#fff; border:1px solid var(--line); border-radius:14px; padding:6px 12px;}
+  .agenda-day{border-bottom:1px solid var(--line); padding:12px 0;}
+  .agenda-day:last-child{border-bottom:none;}
+  .agenda-day-head{display:flex; align-items:baseline; gap:8px; margin-bottom:8px; flex-wrap:wrap;}
+  .agenda-day-name{font-family:'Heebo',sans-serif; font-weight:800; font-size:15px; color:var(--ink);}
+  .agenda-day-date{font-size:12px; color:var(--ink-soft); font-weight:500;}
+  .agenda-day-head.today .agenda-day-name{color:var(--accent);}
+  .agenda-today-badge{font-size:9.5px; font-weight:700; background:var(--accent); color:#fff; border-radius:5px; padding:2px 7px;}
+  .agenda-vac-badge{font-size:11px; font-weight:600; color:var(--teal); background:rgba(47,111,98,.12); border-radius:999px; padding:2px 10px;}
+  .agenda-count{font-size:11px; color:var(--ink-soft); margin-inline-start:auto;}
+  .agenda-items{display:flex; flex-direction:column; gap:6px;}
+  .agenda-item{display:flex; align-items:center; gap:10px; border-radius:10px; padding:9px 11px; background:var(--paper);}
+  .agenda-item.dim{opacity:.28;}
+  .agenda-item .dot-bar{width:5px; align-self:stretch; border-radius:4px; flex:none;}
+  .agenda-item-body{flex:1; min-width:0;}
+  .agenda-item-label{font-weight:700; font-size:13.5px; color:var(--ink); line-height:1.3;}
+  .agenda-item-time{font-size:12px; color:var(--ink-soft); font-weight:600; margin-top:1px;}
+  .agenda-event{border:1.5px dashed var(--purple); background:#F8F4FC;}
+  .agenda-event .agenda-item-label{color:var(--purple);}
+  .agenda-empty{font-size:12.5px; color:var(--ink-soft); padding:4px 2px;}
 
   .school-tabs{display:flex; flex-wrap:wrap; gap:5px; margin-bottom:9px;}
   .school-tab{font-family:'Rubik',sans-serif; font-weight:600; font-size:11px; padding:6px 12px; min-height:29px; border-radius:999px; border:1.5px solid var(--line); background:var(--paper-2); color:var(--ink-soft); cursor:pointer;}
@@ -175,7 +177,7 @@
     <button class="nav-btn" id="nextWeek" aria-label="שבוע הבא">‹</button>
   </div>
 
-  <div class="board"><div class="grid" id="grid"><div class="status">טוען נתונים מהגיליון…</div></div></div>
+  <div class="board"><div id="agenda"><div class="status">טוען נתונים מהגיליון…</div></div></div>
 
   <details class="section-card games" open>
     <summary>השבוע לאן?<span class="chev">›</span></summary>
@@ -409,7 +411,7 @@ function renderLegend(){
     chip.innerHTML = `<span class="dot" style="background:${COACH_COLOR[c]||COACH_COLOR.none}"></span>${c==='none'?'ללא שיוך':c}`;
     chip.onclick = ()=>{
       if(selectedCoaches.has(c)) selectedCoaches.delete(c); else selectedCoaches.add(c);
-      renderGrid(); renderLegend();
+      renderAgenda(); renderLegend();
     };
     el.appendChild(chip);
   });
@@ -421,92 +423,77 @@ function renderWeekLabel(){
     weekOffset===0 ? `השבוע · ${fmtDateFull(dates[0])} – ${fmtDateFull(dates[6])}` : `${fmtDateFull(dates[0])} – ${fmtDateFull(dates[6])}`;
 }
 
-function renderGrid(){
-  const grid = document.getElementById('grid');
-  grid.innerHTML = '';
+function renderAgenda(){
+  const el = document.getElementById('agenda');
+  el.innerHTML = '';
   const weekDates = getWeekDates(weekOffset);
   const today = new Date();
 
-  const corner = document.createElement('div');
-  grid.appendChild(corner);
-
   DAYS.forEach((d,i)=>{
     const isToday = isSameDate(weekDates[i], today);
     const vac = getVacation(weekDates[i]);
-    const dateISO = toISODateLocal(weekDates[i]);
-    const count = ((schedule[activeHall]||{})[d]||[]).length;
-    const allDayEvents = events.filter(ev=>ev.date===dateISO && ev.allDay);
-    const h = document.createElement('div');
-    h.className = 'day-head';
-    h.style.color = isToday ? '#C4432F' : (vac ? '#2F6F62' : 'var(--ink)');
-    h.innerHTML = `${isToday?'<span class="today-badge">היום</span>':''}${d}
-      <span class="date-span" style="color:${isToday?'#C4432F':'var(--ink-soft)'}">${fmtDateShort(weekDates[i])}</span>
-      ${vac ? `<span class="vac-badge">${vac}</span>` : `<span class="sub-span">${count} אימונים</span>`}
-      ${allDayEvents.map(ev=>`<span class="event-chip">${ev.label}</span>`).join('')}`;
-    grid.appendChild(h);
-  });
-
-  const SLOT_PX = 16; // must match .day-col / .hour-col row height in CSS
-  const hourCol = document.createElement('div');
-  hourCol.className = 'hour-col';
-  hourCol.style.height = (SLOTS * SLOT_PX) + 'px';
-  for(let i=0;i<=SLOTS;i++){
-    const hourVal = START_HOUR + i*(SLOT_MIN/60);
-    if(!Number.isInteger(hourVal)) continue;
-    const cell = document.createElement('div');
-    cell.className = 'hour-label';
-    cell.style.top = (i * SLOT_PX) + 'px';
-    cell.textContent = fmtHour(hourVal);
-    hourCol.appendChild(cell);
-  }
-  grid.appendChild(hourCol);
-
-  DAYS.forEach((d,i)=>{
-    const vac = getVacation(weekDates[i]);
-    const isToday = isSameDate(weekDates[i], today);
     const dateISO = toISODateLocal(weekDates[i]);
     const sessions = (schedule[activeHall]||{})[d] || [];
-    const timedEvents = events.filter(ev=>ev.date===dateISO && !ev.allDay);
-    const col = document.createElement('div');
-    col.className = 'day-col';
-    col.style.background = vac
-      ? 'repeating-linear-gradient(135deg, rgba(47,111,98,.05), rgba(47,111,98,.05) 6px, rgba(47,111,98,.09) 6px, rgba(47,111,98,.09) 12px)'
-      : (isToday ? 'rgba(196,67,47,.045)' : 'transparent');
-    for(let i2=0;i2<SLOTS;i2++){
-      const line = document.createElement('div');
-      line.className = 'slot-line';
-      col.appendChild(line);
-    }
-    if(sessions.length===0 && timedEvents.length===0){
+    const dayEvents = events.filter(ev=>ev.date===dateISO);
+    const allDayEvents = dayEvents.filter(ev=>ev.allDay);
+    const timedEvents = dayEvents.filter(ev=>!ev.allDay);
+
+    const dayEl = document.createElement('div');
+    dayEl.className = 'agenda-day';
+
+    const head = document.createElement('div');
+    head.className = 'agenda-day-head' + (isToday ? ' today' : '');
+    head.innerHTML = `
+      <span class="agenda-day-name">יום ${d}</span>
+      <span class="agenda-day-date">${fmtDateShort(weekDates[i])}</span>
+      ${isToday ? '<span class="agenda-today-badge">היום</span>' : ''}
+      ${vac ? `<span class="agenda-vac-badge">${vac}</span>` : ''}
+      ${allDayEvents.map(ev=>`<span class="agenda-vac-badge" style="color:var(--purple);background:rgba(107,79,160,.12)">📅 ${ev.label}</span>`).join('')}
+      <span class="agenda-count">${sessions.length} אימונים</span>
+    `;
+    dayEl.appendChild(head);
+
+    const itemsWrap = document.createElement('div');
+    itemsWrap.className = 'agenda-items';
+
+    // merge sessions + timed events, sorted by start time
+    const combined = [
+      ...sessions.map(s=>({...s, __type:'session'})),
+      ...timedEvents.map(ev=>({...ev, start:timeStrToHour(ev.start), end:timeStrToHour(ev.end), __type:'event'}))
+    ].sort((a,b)=>a.start-b.start);
+
+    if(!combined.length){
       const empty = document.createElement('div');
-      empty.className='empty-day'; empty.textContent='—';
-      col.appendChild(empty);
+      empty.className = 'agenda-empty';
+      empty.textContent = 'אין אימונים ביום זה';
+      itemsWrap.appendChild(empty);
     }
-    sessions.forEach(s=>{
-      const startSlot = (s.start-START_HOUR)*(60/SLOT_MIN);
-      const spanSlots = Math.max(1, Math.round(s.duration*(60/SLOT_MIN)));
-      const coachKey = s.coach || 'none';
-      const isDim = selectedCoaches.size && !selectedCoaches.has(coachKey);
-      const block = document.createElement('div');
-      block.className = 'session' + (isDim?' dim':'');
-      block.style.background = COACH_COLOR[coachKey] || COACH_COLOR.none;
-      block.style.gridRow = `${Math.round(startSlot)+1} / span ${spanSlots}`;
-      block.title = s.label;
-      block.innerHTML = `${s.label}<span class="t">${fmtHour(s.start)}–${fmtHour(s.end)}</span>`;
-      col.appendChild(block);
+
+    combined.forEach(item=>{
+      const row = document.createElement('div');
+      if(item.__type === 'event'){
+        row.className = 'agenda-item agenda-event';
+        row.innerHTML = `
+          <div class="agenda-item-body">
+            <div class="agenda-item-label">📅 ${item.label}</div>
+            <div class="agenda-item-time">${fmtHour(item.start)}–${fmtHour(item.end)}</div>
+          </div>`;
+      }else{
+        const coachKey = item.coach || 'none';
+        const isDim = selectedCoaches.size && !selectedCoaches.has(coachKey);
+        row.className = 'agenda-item' + (isDim ? ' dim' : '');
+        row.innerHTML = `
+          <div class="dot-bar" style="background:${COACH_COLOR[coachKey]||COACH_COLOR.none}"></div>
+          <div class="agenda-item-body">
+            <div class="agenda-item-label">${item.label}</div>
+            <div class="agenda-item-time">${fmtHour(item.start)}–${fmtHour(item.end)}${item.coach ? ' · '+item.coach : ''}</div>
+          </div>`;
+      }
+      itemsWrap.appendChild(row);
     });
-    timedEvents.forEach(ev=>{
-      const startH = Math.min(Math.max(timeStrToHour(ev.start), START_HOUR), END_HOUR-0.5);
-      const endH = Math.min(Math.max(timeStrToHour(ev.end), startH+0.5), END_HOUR);
-      const startSlot = (startH-START_HOUR)*(60/SLOT_MIN);
-      const spanSlots = Math.max(1, Math.round((endH-startH)*(60/SLOT_MIN)));
-      const block = document.createElement('div');
-      block.className = 'event-block';
-      block.style.gridRow = `${Math.round(startSlot)+1} / span ${spanSlots}`;
-      block.innerHTML = `📅 ${ev.label}<span class="t">${ev.start}–${ev.end}</span>`;
-      col.appendChild(block);
-    });
-    grid.appendChild(col);
+
+    dayEl.appendChild(itemsWrap);
+    el.appendChild(dayEl);
   });
 }
 
@@ -559,7 +546,7 @@ function renderMonth(){
     cell.onclick = ()=>{
       const diffDays = Math.round((date - getWeekStart(0)) / 86400000);
       weekOffset = Math.floor(diffDays / 7);
-      renderWeekLabel(); renderGrid();
+      renderWeekLabel(); renderAgenda();
     };
     grid.appendChild(cell);
   }
@@ -655,7 +642,7 @@ function renderAll(){
   renderTabs();
   renderLegend();
   renderWeekLabel();
-  renderGrid();
+  renderAgenda();
   renderGames();
   renderMonth();
   renderSchoolTabs();
@@ -666,9 +653,9 @@ function renderAll(){
   renderRoster();
 }
 
-document.getElementById('prevWeek').onclick = ()=>{ weekOffset -= 1; renderWeekLabel(); renderGrid(); };
-document.getElementById('nextWeek').onclick = ()=>{ weekOffset += 1; renderWeekLabel(); renderGrid(); };
-document.getElementById('todayBtn').onclick = ()=>{ weekOffset = 0; renderWeekLabel(); renderGrid(); };
+document.getElementById('prevWeek').onclick = ()=>{ weekOffset -= 1; renderWeekLabel(); renderAgenda(); };
+document.getElementById('nextWeek').onclick = ()=>{ weekOffset += 1; renderWeekLabel(); renderAgenda(); };
+document.getElementById('todayBtn').onclick = ()=>{ weekOffset = 0; renderWeekLabel(); renderAgenda(); };
 document.getElementById('prevMonth').onclick = ()=>{ monthOffset -= 1; renderMonth(); };
 document.getElementById('nextMonth').onclick = ()=>{ monthOffset += 1; renderMonth(); };
 
@@ -683,7 +670,7 @@ document.getElementById('nextMonth').onclick = ()=>{ monthOffset += 1; renderMon
     activeHall = Object.keys(schedule)[0];
     renderAll();
   }catch(e){
-    document.getElementById('grid').innerHTML = '<div class="status">שגיאה בטעינת הנתונים מהגיליון. בדוק שהקישורים עדיין מפורסמים.</div>';
+    document.getElementById('agenda').innerHTML = '<div class="status">שגיאה בטעינת הנתונים מהגיליון. בדוק שהקישורים עדיין מפורסמים.</div>';
     document.getElementById('gamesList').innerHTML = '';
     renderMonth();
     renderSchoolTabs();
