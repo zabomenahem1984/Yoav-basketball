@@ -77,6 +77,14 @@
   .nav-btn{font-family:'Heebo',sans-serif; font-size:17px; font-weight:700; background:rgba(255,255,255,.12); color:var(--paper); border:none; border-radius:7px; width:31px; height:31px; cursor:pointer;}
   .week-label{display:flex; align-items:center; gap:7px; flex-wrap:wrap; font-family:'Heebo',sans-serif; font-weight:700; font-size:12px;}
   .today-btn{font-size:11px; font-weight:600; background:var(--wood); color:var(--ink); border:none; border-radius:999px; padding:6px 12px; min-height:27px; cursor:pointer;}
+  .view-toggle-row{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; flex-wrap:wrap;}
+  .view-toggle{display:flex; gap:3px; background:var(--paper-2); padding:3px; border-radius:999px; border:1px solid var(--line);}
+  .view-toggle-btn{font-family:'Rubik',sans-serif; font-weight:600; font-size:11px; padding:6px 13px; min-height:28px; border-radius:999px; border:none; background:transparent; color:var(--ink-soft); cursor:pointer;}
+  .view-toggle-btn.active{background:var(--ink); color:var(--paper);}
+  .day-tabs{display:flex; gap:4px; flex-wrap:wrap;}
+  .day-tab{font-family:'Heebo',sans-serif; font-weight:700; font-size:11px; padding:6px 11px; min-height:28px; border-radius:999px; border:1.5px solid var(--line); background:#fff; color:var(--ink-soft); cursor:pointer;}
+  .day-tab.active{background:var(--wood); border-color:var(--wood); color:var(--ink);}
+  .day-tab.today-tab{border-color:var(--accent);}
   .board{background:#fff; border:1px solid var(--line); border-radius:14px; padding:6px 12px;}
   .agenda-day{border-bottom:1px solid var(--line); padding:12px 0;}
   .agenda-day:last-child{border-bottom:none;}
@@ -175,6 +183,14 @@
       <button class="today-btn" id="todayBtn">היום</button>
     </div>
     <button class="nav-btn" id="nextWeek" aria-label="שבוע הבא">‹</button>
+  </div>
+
+  <div class="view-toggle-row">
+    <div class="view-toggle" id="viewToggle">
+      <button class="view-toggle-btn" data-view="week">שבועי</button>
+      <button class="view-toggle-btn" data-view="day">יומי</button>
+    </div>
+    <div class="day-tabs" id="dayTabs"></div>
   </div>
 
   <div class="board"><div id="agenda"><div class="status">טוען נתונים מהגיליון…</div></div></div>
@@ -337,6 +353,8 @@ let events = [];      // [{date, label, allDay, start, end}]
 let activeHall = null;
 let selectedCoaches = new Set(); // empty = show everyone
 let weekOffset = 0;
+let viewMode = 'week'; // 'week' | 'day'
+let activeDayIndex = new Date().getDay(); // 0=Sunday..6=Saturday
 let monthOffset = 0; // months relative to current month
 
 function buildSchedule(rows){
@@ -423,77 +441,105 @@ function renderWeekLabel(){
     weekOffset===0 ? `השבוע · ${fmtDateFull(dates[0])} – ${fmtDateFull(dates[6])}` : `${fmtDateFull(dates[0])} – ${fmtDateFull(dates[6])}`;
 }
 
+function buildAgendaDay(d, i, weekDates, today){
+  const isToday = isSameDate(weekDates[i], today);
+  const vac = getVacation(weekDates[i]);
+  const dateISO = toISODateLocal(weekDates[i]);
+  const sessions = (schedule[activeHall]||{})[d] || [];
+  const dayEvents = events.filter(ev=>ev.date===dateISO);
+  const allDayEvents = dayEvents.filter(ev=>ev.allDay);
+  const timedEvents = dayEvents.filter(ev=>!ev.allDay);
+
+  const dayEl = document.createElement('div');
+  dayEl.className = 'agenda-day';
+
+  const head = document.createElement('div');
+  head.className = 'agenda-day-head' + (isToday ? ' today' : '');
+  head.innerHTML = `
+    <span class="agenda-day-name">יום ${d}</span>
+    <span class="agenda-day-date">${fmtDateShort(weekDates[i])}</span>
+    ${isToday ? '<span class="agenda-today-badge">היום</span>' : ''}
+    ${vac ? `<span class="agenda-vac-badge">${vac}</span>` : ''}
+    ${allDayEvents.map(ev=>`<span class="agenda-vac-badge" style="color:var(--purple);background:rgba(107,79,160,.12)">📅 ${ev.label}</span>`).join('')}
+    <span class="agenda-count">${sessions.length} אימונים</span>
+  `;
+  dayEl.appendChild(head);
+
+  const itemsWrap = document.createElement('div');
+  itemsWrap.className = 'agenda-items';
+
+  const combined = [
+    ...sessions.map(s=>({...s, __type:'session'})),
+    ...timedEvents.map(ev=>({...ev, start:timeStrToHour(ev.start), end:timeStrToHour(ev.end), __type:'event'}))
+  ].sort((a,b)=>a.start-b.start);
+
+  if(!combined.length){
+    const empty = document.createElement('div');
+    empty.className = 'agenda-empty';
+    empty.textContent = 'אין אימונים ביום זה';
+    itemsWrap.appendChild(empty);
+  }
+
+  combined.forEach(item=>{
+    const row = document.createElement('div');
+    if(item.__type === 'event'){
+      row.className = 'agenda-item agenda-event';
+      row.innerHTML = `
+        <div class="agenda-item-body">
+          <div class="agenda-item-label">📅 ${item.label}</div>
+          <div class="agenda-item-time">${fmtHour(item.start)}–${fmtHour(item.end)}</div>
+        </div>`;
+    }else{
+      const coachKey = item.coach || 'none';
+      const isDim = selectedCoaches.size && !selectedCoaches.has(coachKey);
+      row.className = 'agenda-item' + (isDim ? ' dim' : '');
+      row.innerHTML = `
+        <div class="dot-bar" style="background:${COACH_COLOR[coachKey]||COACH_COLOR.none}"></div>
+        <div class="agenda-item-body">
+          <div class="agenda-item-label">${item.label}</div>
+          <div class="agenda-item-time">${fmtHour(item.start)}–${fmtHour(item.end)}${item.coach ? ' · '+item.coach : ''}</div>
+        </div>`;
+    }
+    itemsWrap.appendChild(row);
+  });
+
+  dayEl.appendChild(itemsWrap);
+  return dayEl;
+}
+
 function renderAgenda(){
   const el = document.getElementById('agenda');
   el.innerHTML = '';
   const weekDates = getWeekDates(weekOffset);
   const today = new Date();
 
+  if(viewMode === 'day'){
+    el.appendChild(buildAgendaDay(DAYS[activeDayIndex], activeDayIndex, weekDates, today));
+  }else{
+    DAYS.forEach((d,i)=> el.appendChild(buildAgendaDay(d, i, weekDates, today)));
+  }
+}
+
+function renderViewToggle(){
+  const el = document.getElementById('viewToggle');
+  Array.from(el.children).forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.view === viewMode);
+  });
+  document.getElementById('dayTabs').style.display = viewMode === 'day' ? 'flex' : 'none';
+}
+
+function renderDayTabs(){
+  const el = document.getElementById('dayTabs');
+  el.innerHTML = '';
+  const weekDates = getWeekDates(weekOffset);
+  const today = new Date();
   DAYS.forEach((d,i)=>{
     const isToday = isSameDate(weekDates[i], today);
-    const vac = getVacation(weekDates[i]);
-    const dateISO = toISODateLocal(weekDates[i]);
-    const sessions = (schedule[activeHall]||{})[d] || [];
-    const dayEvents = events.filter(ev=>ev.date===dateISO);
-    const allDayEvents = dayEvents.filter(ev=>ev.allDay);
-    const timedEvents = dayEvents.filter(ev=>!ev.allDay);
-
-    const dayEl = document.createElement('div');
-    dayEl.className = 'agenda-day';
-
-    const head = document.createElement('div');
-    head.className = 'agenda-day-head' + (isToday ? ' today' : '');
-    head.innerHTML = `
-      <span class="agenda-day-name">יום ${d}</span>
-      <span class="agenda-day-date">${fmtDateShort(weekDates[i])}</span>
-      ${isToday ? '<span class="agenda-today-badge">היום</span>' : ''}
-      ${vac ? `<span class="agenda-vac-badge">${vac}</span>` : ''}
-      ${allDayEvents.map(ev=>`<span class="agenda-vac-badge" style="color:var(--purple);background:rgba(107,79,160,.12)">📅 ${ev.label}</span>`).join('')}
-      <span class="agenda-count">${sessions.length} אימונים</span>
-    `;
-    dayEl.appendChild(head);
-
-    const itemsWrap = document.createElement('div');
-    itemsWrap.className = 'agenda-items';
-
-    // merge sessions + timed events, sorted by start time
-    const combined = [
-      ...sessions.map(s=>({...s, __type:'session'})),
-      ...timedEvents.map(ev=>({...ev, start:timeStrToHour(ev.start), end:timeStrToHour(ev.end), __type:'event'}))
-    ].sort((a,b)=>a.start-b.start);
-
-    if(!combined.length){
-      const empty = document.createElement('div');
-      empty.className = 'agenda-empty';
-      empty.textContent = 'אין אימונים ביום זה';
-      itemsWrap.appendChild(empty);
-    }
-
-    combined.forEach(item=>{
-      const row = document.createElement('div');
-      if(item.__type === 'event'){
-        row.className = 'agenda-item agenda-event';
-        row.innerHTML = `
-          <div class="agenda-item-body">
-            <div class="agenda-item-label">📅 ${item.label}</div>
-            <div class="agenda-item-time">${fmtHour(item.start)}–${fmtHour(item.end)}</div>
-          </div>`;
-      }else{
-        const coachKey = item.coach || 'none';
-        const isDim = selectedCoaches.size && !selectedCoaches.has(coachKey);
-        row.className = 'agenda-item' + (isDim ? ' dim' : '');
-        row.innerHTML = `
-          <div class="dot-bar" style="background:${COACH_COLOR[coachKey]||COACH_COLOR.none}"></div>
-          <div class="agenda-item-body">
-            <div class="agenda-item-label">${item.label}</div>
-            <div class="agenda-item-time">${fmtHour(item.start)}–${fmtHour(item.end)}${item.coach ? ' · '+item.coach : ''}</div>
-          </div>`;
-      }
-      itemsWrap.appendChild(row);
-    });
-
-    dayEl.appendChild(itemsWrap);
-    el.appendChild(dayEl);
+    const b = document.createElement('button');
+    b.className = 'day-tab' + (i===activeDayIndex ? ' active' : '') + (isToday ? ' today-tab' : '');
+    b.textContent = `${d.slice(0,2)}'`;
+    b.onclick = ()=>{ activeDayIndex = i; renderDayTabs(); renderAgenda(); };
+    el.appendChild(b);
   });
 }
 
@@ -546,7 +592,8 @@ function renderMonth(){
     cell.onclick = ()=>{
       const diffDays = Math.round((date - getWeekStart(0)) / 86400000);
       weekOffset = Math.floor(diffDays / 7);
-      renderWeekLabel(); renderAgenda();
+      activeDayIndex = date.getDay();
+      renderWeekLabel(); renderDayTabs(); renderAgenda();
     };
     grid.appendChild(cell);
   }
@@ -642,6 +689,8 @@ function renderAll(){
   renderTabs();
   renderLegend();
   renderWeekLabel();
+  renderViewToggle();
+  renderDayTabs();
   renderAgenda();
   renderGames();
   renderMonth();
@@ -653,11 +702,14 @@ function renderAll(){
   renderRoster();
 }
 
-document.getElementById('prevWeek').onclick = ()=>{ weekOffset -= 1; renderWeekLabel(); renderAgenda(); };
-document.getElementById('nextWeek').onclick = ()=>{ weekOffset += 1; renderWeekLabel(); renderAgenda(); };
-document.getElementById('todayBtn').onclick = ()=>{ weekOffset = 0; renderWeekLabel(); renderAgenda(); };
+document.getElementById('prevWeek').onclick = ()=>{ weekOffset -= 1; renderWeekLabel(); renderDayTabs(); renderAgenda(); };
+document.getElementById('nextWeek').onclick = ()=>{ weekOffset += 1; renderWeekLabel(); renderDayTabs(); renderAgenda(); };
+document.getElementById('todayBtn').onclick = ()=>{ weekOffset = 0; activeDayIndex = new Date().getDay(); renderWeekLabel(); renderDayTabs(); renderAgenda(); };
 document.getElementById('prevMonth').onclick = ()=>{ monthOffset -= 1; renderMonth(); };
 document.getElementById('nextMonth').onclick = ()=>{ monthOffset += 1; renderMonth(); };
+Array.from(document.getElementById('viewToggle').children).forEach(btn=>{
+  btn.onclick = ()=>{ viewMode = btn.dataset.view; renderViewToggle(); renderAgenda(); };
+});
 
 (async function init(){
   try{
@@ -672,6 +724,8 @@ document.getElementById('nextMonth').onclick = ()=>{ monthOffset += 1; renderMon
   }catch(e){
     document.getElementById('agenda').innerHTML = '<div class="status">שגיאה בטעינת הנתונים מהגיליון. בדוק שהקישורים עדיין מפורסמים.</div>';
     document.getElementById('gamesList').innerHTML = '';
+    renderViewToggle();
+    renderDayTabs();
     renderMonth();
     renderSchoolTabs();
     renderDismissal();
